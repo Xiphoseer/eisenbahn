@@ -30,6 +30,8 @@
                 }).addTo(map);
             }
 
+            L.tileLayer('https://api.maptiler.com/tiles/hillshades/{z}/{x}/{y}.png?key=zJzteSJTxeNymXaST1Gb').addTo(map);
+
             L.marker([50.1650, 8.7840]).addTo(map).bindPopup('<b>Bhf Hohe Straße</b>');
             L.marker([50.1900, 8.7800]).addTo(map).bindPopup('<b>Bhf Gronau Süd</b>');
             L.marker([50.1980, 8.7400]).addTo(map).bindPopup('<b>Bhf Bad Vilbel Nord</b>');
