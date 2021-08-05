@@ -15,28 +15,10 @@
     <script src="https://cdn.maptiler.com/mapbox-gl-leaflet/latest/leaflet-mapbox-gl.js"></script>
     <link rel="stylesheet" href="https://cdn.maptiler.com/mapbox-gl-js/v1.5.1/mapbox-gl.css" />
     <script>
-        function onLoad() {
-            var map = L.map('map').setView([50.1948, 8.7515], 12);
-
-            console.log(window.location);
-            if (window.location.protocol == 'file:') {
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-            } else {
-                var gl = L.mapboxGL({
-                    attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
-                    style: 'https://api.maptiler.com/maps/339b74e3-736a-4a41-94e3-bafcc9dcffb7/style.json?key=g4rPvq9AptKIXPP2JxyE'
-                }).addTo(map);
-            }
-
-            L.tileLayer('https://api.maptiler.com/tiles/hillshades/{z}/{x}/{y}.png?key=zJzteSJTxeNymXaST1Gb').addTo(map);
-
-            L.marker([50.1650, 8.7840]).addTo(map).bindPopup('<b>Bhf Hohe Straße</b>');
-            L.marker([50.1900, 8.7800]).addTo(map).bindPopup('<b>Bhf Gronau Süd</b>');
-            L.marker([50.1980, 8.7400]).addTo(map).bindPopup('<b>Bhf Bad Vilbel Nord</b>');
-            L.marker([50.2050, 8.7200]).addTo(map).bindPopup('<b>Bhf Nieder-Erlenbach</b>');
-            L.marker([50.2210, 8.6750]).addTo(map).bindPopup('<b>Bhf Ober-Erlenbach</b>');
+        function makeRtn() {
+            let bhfBvNord = L.marker([50.1980, 8.7400]).bindPopup('<b>Bhf Bad Vilbel Nord</b>');
+            let bhfNiEr = L.marker([50.2050, 8.7200]).bindPopup('<b>Bhf Nieder-Erlenbach</b>');
+            let bhfObEr = L.marker([50.2210, 8.6750]).bindPopup('<b>Bhf Ober-Erlenbach</b>');
 
             var latlngs = [
                 [50.1980, 8.7440],
@@ -53,7 +35,13 @@
                 [50.2285, 8.6443]
             ];
 
-            var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
+            var route = L.polyline(latlngs, { color: 'red' });
+            return L.layerGroup([bhfBvNord, bhfNiEr, bhfObEr, route]);
+        }
+
+        function makeRtoNord() {
+            let bhfHoSt = L.marker([50.1650, 8.7840]).bindPopup('<b>Bhf Hohe Straße</b>');
+            let bhfGrSu = L.marker([50.1900, 8.7800]).bindPopup('<b>Bhf Gronau Süd</b>');
 
             var latlngs = [
                 [50.1910, 8.7800],
@@ -66,7 +54,70 @@
                 [50.1400, 8.7800],
             ];
 
-            var polyline = L.polyline(latlngs, { color: 'red' }).addTo(map);
+            var route = L.polyline(latlngs, { color: 'red' });
+
+            return L.layerGroup([bhfHoSt, bhfGrSu, route]);
+        }
+
+        function makeRtoSud() {
+            let bhfOfMu = L.marker([50.1090, 8.7910]).bindPopup('<b>Bhf Offenbach Mülheimer Straße</b>');
+            let bhfRuBu = L.marker([50.1265, 8.7935]).bindPopup('<b>Bhf Rumpenheim / Bürgel</b>');
+
+            var latlngs = [
+                [50.1400, 8.7870],
+                [50.1350, 8.7870],
+                [50.1300, 8.7920],
+                [50.1200, 8.7965],
+                [50.1160, 8.7965],
+                [50.1130, 8.7935],
+                [50.1090, 8.7910],
+                [50.1000, 8.8005],
+            ];
+
+            var route = L.polyline(latlngs, { color: 'red' });
+            return L.layerGroup([bhfOfMu, bhfRuBu, route]);
+        }
+        
+        function onLoad() {
+
+            let rtn = makeRtn();
+            let rton = makeRtoNord();
+            let rtos = makeRtoSud();
+
+            let hillshades = L.tileLayer('https://api.maptiler.com/tiles/hillshades/{z}/{x}/{y}.png?key=zJzteSJTxeNymXaST1Gb');
+            let contours = L.tileLayer('https://api.maptiler.com/tiles/contours/{z}/{x}/{y}.pbf?key=zJzteSJTxeNymXaST1Gb');
+
+            var map = L.map('map', {
+                center: [50.1630, 8.7435],
+                zoom: 12,
+                layers: [rtn, rton, rtos],
+            });
+
+            var baseMaps = {
+                //"Grayscale": grayscale,
+                //"Streets": streets
+            };
+
+            var overlayMaps = {
+                //"Cities": cities
+                "Topografie": hillshades,
+                "Regionaltangente Nord": rtn,
+                "Regionaltangente Ost (nordmainisch)": rton,
+                "Regionaltangente Ost (südmainisch)": rtos,
+            };
+
+            L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+            if (window.location.protocol == 'file:') {
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            } else {
+                var gl = L.mapboxGL({
+                    attribution: "\u003ca href=\"https://www.maptiler.com/copyright/\" target=\"_blank\"\u003e\u0026copy; MapTiler\u003c/a\u003e \u003ca href=\"https://www.openstreetmap.org/copyright\" target=\"_blank\"\u003e\u0026copy; OpenStreetMap contributors\u003c/a\u003e",
+                    style: 'https://api.maptiler.com/maps/339b74e3-736a-4a41-94e3-bafcc9dcffb7/style.json?key=g4rPvq9AptKIXPP2JxyE'
+                }).addTo(map);
+            }
         }
     </script>
     <style>
